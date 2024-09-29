@@ -25,7 +25,7 @@ const Login = () => {
       rpassword.current.value = "";
     }
     try {
-      const res = await axios.post("http://localhost:3000/api/v1/auth/login", {
+      const res = await axios.post("http://localhost:3001/api/v1/auth/login", {
         email,
         password,
       });

@@ -1,8 +1,7 @@
 import express from "express";
 import { isAdmin, requireSignIn } from "../middleware/authMiddleware.js";
 import {
-  braintreePaymentController,
-  braintreeTokenController,
+
   categoryProductController,
   createProductController,
   deleteProductController,
@@ -15,6 +14,8 @@ import {
   relatedProductController,
   searchProductController,
   updateProductController,
+  createRazorpayOrder,
+  verifyRazorpayPayment
 } from "../controllers/productController.js";
 import formidable from "express-formidable";
 
@@ -69,9 +70,8 @@ router.get("/related-product/:pid/:cid", relatedProductController);
 router.get("/product-category/:slug", categoryProductController);
 
 // payment routes
-router.get("/braintree/token", braintreeTokenController);
 
-// payments
-router.post("/braintree/payment", requireSignIn, braintreePaymentController);
+router.post("/razorpay/order", requireSignIn, createRazorpayOrder);
+router.post("/razorpay/verify", requireSignIn, verifyRazorpayPayment);
 
 export default router;

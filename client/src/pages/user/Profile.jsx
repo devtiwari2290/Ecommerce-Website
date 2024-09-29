@@ -27,7 +27,7 @@ const Profile = () => {
       setPhone("");
       setAddress("");
       const { data } = await axios.put(
-        "http://localhost:3000/api/v1/auth/profile",
+        "http://localhost:3001/api/v1/auth/profile",
         {
           name,
           email,

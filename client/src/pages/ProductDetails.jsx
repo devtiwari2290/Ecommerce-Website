@@ -14,7 +14,7 @@ const ProductDetails = () => {
   const getProduct = async () => {
     try {
       const { data } = await axios.get(
-        `http://localhost:3000/api/v1/product/get-product/${params?.slug}`
+        `http://localhost:3001/api/v1/product/get-product/${params?.slug}`
       );
       setProduct(data?.product);
       getSimilarProducts(data?.product._id, data?.product.category._id);
@@ -32,7 +32,7 @@ const ProductDetails = () => {
   const getSimilarProducts = async (pid, cid) => {
     try {
       const { data } = await axios.get(
-        `http://localhost:3000/api/v1/product/related-product/${pid}/${cid}`
+        `http://localhost:3001/api/v1/product/related-product/${pid}/${cid}`
       );
       setRelatedProducts(data?.products);
     } catch (error) {
@@ -47,7 +47,7 @@ const ProductDetails = () => {
           <div className="w-[7  0%] h-[40vh]  mx-auto lg:w-[25%]  lg:h-[44vh]">
             <img
               className="w-full h-full object-center"
-              src={`http://localhost:3000/api/v1/product/product-photo/${product._id}`}
+              src={`http://localhost:3001/api/v1/product/product-photo/${product._id}`}
               alt={product.name}
             />
           </div>
@@ -109,7 +109,7 @@ const ProductDetails = () => {
                 <div className="w-full h-48" key={index}>
                   <img
                     className="w-full h-full object-cover "
-                    src={`http://localhost:3000/api/v1/product/product-photo/${i._id}`}
+                    src={`http://localhost:3001/api/v1/product/product-photo/${i._id}`}
                     alt={i.name}
                   />
                 </div>

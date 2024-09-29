@@ -1,6 +1,6 @@
 {
   "name": "client",
-  "proxy": "http://localhost:3000",
+  "proxy": "http://localhost:3001",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,6 +13,7 @@
   "dependencies": {
     "axios": "^1.7.7",
     "braintree-web-drop-in-react": "^1.2.1",
+    "client": "file:",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-helmet": "^6.1.0",
@@ -31,8 +32,8 @@
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
-    "postcss": "^8.4.45",
-    "tailwindcss": "^3.4.10",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.12",
     "vite": "^5.4.1"
   }
 }

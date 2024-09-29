@@ -3,26 +3,21 @@ import React, { useEffect, useState } from "react";
 import { useCart } from "../context/cart";
 import { useAuth } from "../context/auth";
 import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
-import DropIn from "braintree-web-drop-in-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 
 const CartPage = () => {
   const [cart, setCart] = useCart();
-  const [auth] = useAuth(); // No need to set auth if you are only using it
-  const [clientToken, setClientToken] = useState("");
-  const [instance, setInstance] = useState("");
+  const [auth] = useAuth(); 
   const [loading, setLoading] = useState(false);
-
   const navigate = useNavigate();
 
   // Total price item
   const totalPrice = () => {
     try {
-      let total = 0; // Change to let to allow updates
+      let total = 0;
       cart?.forEach((item) => {
-        total += item.price * item.quantity; // Multiply by quantity to get the correct total
+        total += item.price * item.quantity;
       });
 
       return total.toLocaleString("en-IN", {
@@ -33,6 +28,17 @@ const CartPage = () => {
       console.log(error);
     }
   };
+
+  const loadRazorpay = () => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onerror = () => alert('Failed to load Razorpay SDK. Please check your connection.');
+    document.body.appendChild(script);
+  };
+
+  useEffect(() => {
+    loadRazorpay();
+  }, []);
 
   // Delete cart item
   const removeCartItem = (pid) => {
@@ -49,40 +55,67 @@ const CartPage = () => {
     }
   };
 
-  // get PaymentGateway Token
-  const getToken = async () => {
-    try {
-      const { data } = await axios.get(
-        "http://localhost:3000/api/v1/product/braintree/token"
-      );
-      setClientToken(data?.clientToken);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    getToken();
-  }, [auth?.token]);
-
+  // Handle Razorpay Payment
   const handlePayment = async () => {
+    setLoading(true);
     try {
-      const { nonce } = await instance.requestPaymentMethod();
-      const { data } = await axios.post(
-        "http://localhost:3000/api/v1/product/braintree/payment",
-        {
-          nonce,
-          cart,
-        }
+      // Create an order on the backend
+      const { data: order } = await axios.post(
+        "http://localhost:3001/api/v1/product/razorpay/order",
+        { cart } // Send cart details to backend
       );
 
+      // Define Razorpay options
+      const options = {
+        key:"rzp_test_tNWXa4uuNEOeQc", // Razorpay Key ID from env
+        amount: order.amount, 
+        currency: order.currency, 
+        name: "Your Shop Name",
+        description: "Order Payment",
+        order_id: order.id, 
+        handler: async (response) => {
+          try {
+            const verificationResponse = await axios.post(
+              "http://localhost:3001/api/v1/product/razorpay/verify",
+              {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                cart,
+              }
+            );
+
+            if (verificationResponse.data.success) {
+              // Payment Success
+              localStorage.removeItem("cart");
+              setCart([]);
+              toast.success("Payment Successful!");
+              navigate("/dashboard/user/orders");
+            } else {
+              toast.error("Payment verification failed");
+            }
+          } catch (error) {
+            console.error(error);
+            toast.error("Payment verification failed");
+          }
+        },
+        prefill: {
+          name: auth.user.name,
+          email: auth.user.email,
+          contact: auth.user.phone,
+        },
+        theme: {
+          color: "#3399cc",
+        },
+      };
+
+      // Open Razorpay payment modal
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
       setLoading(false);
-      localStorage.removeItem("cart");
-      setCart([]);
-      navigate("/dashboard/user/orders");
-      toast.success("Payment Successfull");
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      toast.error("Error initiating payment");
       setLoading(false);
     }
   };
@@ -90,7 +123,7 @@ const CartPage = () => {
   return (
     <Layout>
       <div className="w-full min-h-[90vh] pb-10 pt-20 lg:pt-24">
-        <h1 className="text-3xl text-center text-black mb-3 ">
+        <h1 className="mb-3 text-3xl text-center text-black ">
           {`Hello ${auth?.token && auth?.user?.name}`}
         </h1>
 
@@ -102,8 +135,8 @@ const CartPage = () => {
             : "Your Cart is Empty"}
         </h4>
         <div className="flex flex-col mt-12 lg:flex-row lg:justify-between lg:px-40">
-          <div className="rounded-md overflow-hidden mx-14 lg:mx-0">
-            <h1 className="text-center text-xl">Cart Items</h1>
+          <div className="overflow-hidden rounded-md mx-14 lg:mx-0">
+            <h1 className="text-xl text-center">Cart Items</h1>
 
             <div className="flex flex-col lg:gap-3">
               {cart?.map((p) => (
@@ -113,23 +146,23 @@ const CartPage = () => {
                 >
                   <div className="w-full h-44">
                     <img
-                      className="w-full h-full object-cover"
-                      src={`http://localhost:3000/api/v1/product/product-photo/${p._id}`}
+                      className="object-cover w-full h-full"
+                      src={`http://localhost:3001/api/v1/product/product-photo/${p._id}`}
                       alt={p.name}
                     />
                   </div>
-                  <div className="w-full inline-block pl-16 pt-4 h-40 lg:h-44 bg-gray-100">
-                    <h1 className="text-sm text-black lg:pb-2 text-nowrap whitespace-nowrap font-semibold">
+                  <div className="inline-block w-full h-40 pt-4 pl-16 bg-gray-100 lg:h-44">
+                    <h1 className="text-sm font-semibold text-black lg:pb-2 text-nowrap whitespace-nowrap">
                       Name: {p.name}
                     </h1>
-                    <p className="text-sm text-black font-semibold">
+                    <p className="text-sm font-semibold text-black">
                       Price: ₹{p.price}
                     </p>
-                    <p className="text-sm text-black font-semibold">
+                    <p className="text-sm font-semibold text-black">
                       Quantity: {p.quantity}
                     </p>
                     <button
-                      className="btn text-sm ms-0 lg:ms-0 rounded text-white px-5 py-2 bg-red-500 lg:px-5 lg:py-2"
+                      className="px-5 py-2 text-sm text-white bg-red-500 rounded btn ms-0 lg:ms-0 lg:px-5 lg:py-2"
                       onClick={() => removeCartItem(p._id)}
                     >
                       Remove
@@ -141,24 +174,24 @@ const CartPage = () => {
           </div>
           <div className="flex flex-col w-[300px] mx-auto lg:mx-0  mt-10 lg:mt-0 text-center">
             <h2 className="text-xl">Cart Summary</h2>
-            <div className=" pt-2 lg:pt-5">
+            <div className="pt-2 lg:pt-5">
               <p className="tracking-widest">Total | Checkout | Payment</p>
               <hr className="w-[70%] mx-auto  lg:w-full h-[1px] bg-black" />
-              <h4 className="text-xl pt-5">Total: {totalPrice()}</h4>
+              <h4 className="pt-5 text-xl">Total: {totalPrice()}</h4>
 
               <div className="pt-5">
                 <p className="tracking-widest">Contact no</p>
                 <hr className="w-[70%] mx-auto  lg:w-full h-[1px] bg-black" />
-                <h4 className="text-xl pt-2">{auth?.user?.phone}</h4>
+                <h4 className="pt-2 text-xl">{auth?.user?.phone}</h4>
               </div>
               {auth?.user?.address ? (
                 <>
                   <div className="pt-5">
                     <p className="tracking-widest">Current Address</p>
                     <hr className="w-[70%] mx-auto lg:w-full h-[1px] bg-black" />
-                    <h4 className="text-xl pt-2">{auth?.user?.address}</h4>
+                    <h4 className="pt-2 text-xl">{auth?.user?.address}</h4>
                     <button
-                      className="btn text-sm mt-4 rounded-lg text-white px-5 py-2 bg-green-500 lg:mt-3 lg:text-lg lg:px-5 lg:py-2"
+                      className="px-5 py-2 mt-4 text-sm text-white bg-green-500 rounded-lg btn lg:mt-3 lg:text-lg lg:px-5 lg:py-2"
                       onClick={() => navigate("/dashboard/user/profile")}
                     >
                       Update Address
@@ -169,14 +202,14 @@ const CartPage = () => {
                 <div className="mb-5">
                   {auth?.token ? (
                     <button
-                      className="btn text-sm mt-4 rounded-lg text-white px-5 py-2 bg-green-500 lg:mt-3 lg:text-lg lg:px-5 lg:py-2"
+                      className="px-5 py-2 mt-4 text-sm text-white bg-green-500 rounded-lg btn lg:mt-3 lg:text-lg lg:px-5 lg:py-2"
                       onClick={() => navigate("/dashboard/user/profile")}
                     >
                       Update Address
                     </button>
                   ) : (
                     <button
-                      className="btn text-sm mt-4 rounded-lg text-white px-5 py-2 bg-green-500 lg:mt-3 lg:text-lg lg:px-5 lg:py-2"
+                      className="px-5 py-2 mt-4 text-sm text-white bg-green-500 rounded-lg btn lg:mt-3 lg:text-lg lg:px-5 lg:py-2"
                       onClick={() =>
                         navigate("/login", {
                           state: "/cart",
@@ -188,28 +221,15 @@ const CartPage = () => {
                   )}
                 </div>
               )}
-              <div className="mt-7 lg:mt-0 overflow-hidden">
-                {!clientToken || !cart?.length ? (
-                  ""
-                ) : (
-                  <>
-                    <DropIn
-                      options={{
-                        authorization: clientToken,
-                        paypal: {
-                          flow: "vault",
-                        },
-                      }}
-                      onInstance={(instance) => setData(instance)}
-                    />
-                    <button
-                      className="btn text-sm mt-4 rounded-lg text-white px-5 py-2 bg-blue-500 lg:mt-3 lg:text-lg lg:px-5 lg:py-2"
-                      onClick={handlePayment}
-                      disabled={!loading || !instance || !auth?.user?.address}
-                    >
-                      {loading ? "Processing..." : "Make Payment"}
-                    </button>
-                  </>
+              <div className="overflow-hidden mt-7 lg:mt-0">
+                {cart?.length > 0 && auth?.user?.address && (
+                  <button
+                    className="px-5 py-2 mt-4 text-sm text-white bg-blue-500 rounded-lg btn lg:mt-3 lg:text-lg lg:px-5 lg:py-2"
+                    onClick={handlePayment}
+                    disabled={loading}
+                  >
+                    {loading ? "Processing..." : "Make Payment"}
+                  </button>
                 )}
               </div>
             </div>

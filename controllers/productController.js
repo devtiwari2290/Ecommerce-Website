@@ -5,15 +5,14 @@ import slugify from "slugify";
 import fs from "fs";
 import braintree from "braintree";
 import dotenv from "dotenv";
+import Razorpay from "razorpay";
+import crypto from "crypto";
+
 
 dotenv.config();
-
-// payment gateway initialization
-const gateway = new braintree.BraintreeGateway({
-  environment: braintree.Environment.Sandbox,
-  merchantId: process.env.BRAINTREE_MERCHANT_ID,
-  publicKey: process.env.BRAINTREE_PUBLIC_KEY,
-  privateKey: process.env.BRAINTREE_PRIVATE_KEY,
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_SECRET,
 });
 
 export const createProductController = async (req, res) => {
@@ -354,54 +353,57 @@ export const categoryProductController = async (req, res) => {
   }
 };
 
-// payment gateway api
-// token
-export const braintreeTokenController = async (req, res) => {
+
+export const createRazorpayOrder = async (req, res) => {
+  console.log("Razorpay Key ID:", process.env.RAZORPAY_KEY_ID);
+console.log("Razorpay Secret:", process.env.RAZORPAY_SECRET);
   try {
-    gateway.clientToken.generate({}, function (err, response) {
-      if (err) {
-        res.status(500).send(err);
-      } else {
-        res.send(response);
-      }
+    const { cart } = req.body;
+    let totalAmount = 0;
+    cart.forEach(item => {
+      totalAmount += item.price * item.quantity;
     });
+
+    const options = {
+      amount: totalAmount * 100, // Razorpay works with paisa, hence the amount is multiplied by 100
+      currency: "INR",
+      receipt: "receipt_order_" + new Date().getTime(),
+    };
+
+    const order = await razorpay.orders.create(options);
+    res.json(order);
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    res.status(500).json({ message: "Error creating Razorpay order" });
   }
 };
 
-// payment
-export const braintreePaymentController = async (req, res) => {
+export const verifyRazorpayPayment = async (req, res) => {
   try {
-    const { cart, nonce } = req.body;
-    let total = 0;
-    cart.map((i) => {
-      total += i.price;
-    });
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, cart } = req.body;
 
-    let newTransaction = gateway.transaction.sale(
-      {
-        amount: total,
-        paymentMethodNonce: nonce,
-        options: {
-          submitForSettlement: true,
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_SECRET)
+      .update(body)
+      .digest("hex");
+
+    if (expectedSignature === razorpay_signature) {
+      const order = new orderModel({
+        products: cart,
+        payment: {
+          orderId: razorpay_order_id,
+          paymentId: razorpay_payment_id,
         },
-      },
-      function (err, result) {
-        if (result) {
-          const order = new orderModel({
-            products: cart,
-            payment: result,
-            buyer: req.user._id,
-          }).save();
-          res.json({ ok: true });
-        } else {
-          res.status(500).send(err);
-        }
-      }
-    );
+        buyer: req.user._id,
+      }).save();
+
+      res.json({ success: true, order });
+    } else {
+      res.status(400).json({ success: false, message: "Invalid payment signature" });
+    }
   } catch (error) {
-    console.log(error);
-    res.status(500).send(error);
+    console.error(error);
+    res.status(500).json({ message: "Payment verification failed" });
   }
 };
