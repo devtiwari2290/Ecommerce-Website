@@ -15,7 +15,8 @@ import {
   searchProductController,
   updateProductController,
   createRazorpayOrder,
-  verifyRazorpayPayment
+  verifyRazorpayPayment,
+  getAllOrders
 } from "../controllers/productController.js";
 import formidable from "express-formidable";
 
@@ -73,5 +74,6 @@ router.get("/product-category/:slug", categoryProductController);
 
 router.post("/razorpay/order", requireSignIn, createRazorpayOrder);
 router.post("/razorpay/verify", requireSignIn, verifyRazorpayPayment);
+router.get("/orders/get", getAllOrders);
 
 export default router;

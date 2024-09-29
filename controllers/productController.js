@@ -355,8 +355,6 @@ export const categoryProductController = async (req, res) => {
 
 
 export const createRazorpayOrder = async (req, res) => {
-  console.log("Razorpay Key ID:", process.env.RAZORPAY_KEY_ID);
-console.log("Razorpay Secret:", process.env.RAZORPAY_SECRET);
   try {
     const { cart } = req.body;
     let totalAmount = 0;
@@ -405,5 +403,15 @@ export const verifyRazorpayPayment = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Payment verification failed" });
+  }
+};
+
+export const getAllOrders = async (req, res) => {
+  try {
+    const orders = await orderModel.find().populate("buyer products"); // Populate to get full details
+    res.json(orders);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching orders" });
   }
 };
