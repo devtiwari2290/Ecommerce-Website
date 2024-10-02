@@ -74,6 +74,6 @@ router.get("/product-category/:slug", categoryProductController);
 
 router.post("/razorpay/order", requireSignIn, createRazorpayOrder);
 router.post("/razorpay/verify", requireSignIn, verifyRazorpayPayment);
-router.get("/orders/get", getAllOrders);
+router.get("/orders/get", requireSignIn, getAllOrders);
 
 export default router;

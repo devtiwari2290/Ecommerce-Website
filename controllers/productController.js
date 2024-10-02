@@ -8,7 +8,6 @@ import dotenv from "dotenv";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 
-
 dotenv.config();
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -408,7 +407,7 @@ export const verifyRazorpayPayment = async (req, res) => {
 
 export const getAllOrders = async (req, res) => {
   try {
-    const orders = await orderModel.find().populate("buyer products"); // Populate to get full details
+    const orders = await orderModel.find({ buyer: req.user._id }).populate("buyer products");
     res.json(orders);
   } catch (error) {
     console.error(error);
