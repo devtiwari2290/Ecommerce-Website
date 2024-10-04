@@ -1,7 +1,6 @@
 import express from "express";
 import { isAdmin, requireSignIn } from "../middleware/authMiddleware.js";
 import {
-
   categoryProductController,
   createProductController,
   deleteProductController,
@@ -16,7 +15,9 @@ import {
   updateProductController,
   createRazorpayOrder,
   verifyRazorpayPayment,
-  getAllOrders
+  getAllOrders,
+  AllOrdersController,
+  orderStatusController,
 } from "../controllers/productController.js";
 import formidable from "express-formidable";
 
@@ -74,6 +75,19 @@ router.get("/product-category/:slug", categoryProductController);
 
 router.post("/razorpay/order", requireSignIn, createRazorpayOrder);
 router.post("/razorpay/verify", requireSignIn, verifyRazorpayPayment);
+
+// orders
 router.get("/orders/get", requireSignIn, getAllOrders);
+
+// all orders
+router.get("/all-orders", requireSignIn, isAdmin, AllOrdersController);
+
+// update order status
+router.put(
+  "/order-status/:orderId",
+  requireSignIn,
+  isAdmin,
+  orderStatusController
+);
 
 export default router;

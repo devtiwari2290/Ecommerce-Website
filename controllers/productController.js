@@ -352,12 +352,11 @@ export const categoryProductController = async (req, res) => {
   }
 };
 
-
 export const createRazorpayOrder = async (req, res) => {
   try {
     const { cart } = req.body;
     let totalAmount = 0;
-    cart.forEach(item => {
+    cart.forEach((item) => {
       totalAmount += item.price * item.quantity;
     });
 
@@ -377,7 +376,8 @@ export const createRazorpayOrder = async (req, res) => {
 
 export const verifyRazorpayPayment = async (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, cart } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, cart } =
+      req.body;
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSignature = crypto
@@ -397,7 +397,9 @@ export const verifyRazorpayPayment = async (req, res) => {
 
       res.json({ success: true, order });
     } else {
-      res.status(400).json({ success: false, message: "Invalid payment signature" });
+      res
+        .status(400)
+        .json({ success: false, message: "Invalid payment signature" });
     }
   } catch (error) {
     console.error(error);
@@ -405,12 +407,47 @@ export const verifyRazorpayPayment = async (req, res) => {
   }
 };
 
+// Orders
 export const getAllOrders = async (req, res) => {
   try {
-    const orders = await orderModel.find({ buyer: req.user._id }).populate("buyer products");
+    const orders = await orderModel
+      .find({ buyer: req.user._id })
+      .populate("buyer products");
     res.json(orders);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error fetching orders" });
+  }
+};
+
+// get All Orders
+export const AllOrdersController = async (req, res) => {
+  try {
+    const orders = await orderModel
+      .find({})
+      .populate("products", "-photo")
+      .populate("buyer", "name")
+      .sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error fetching orders");
+  }
+};
+
+// update Order Status
+export const orderStatusController = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
+    const orders = await orderModel.findByIdAndUpdate(
+      orderId,
+      { status },
+      { new: true }
+    );
+    res.json(orders);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error While updating  Order S tatus");
   }
 };

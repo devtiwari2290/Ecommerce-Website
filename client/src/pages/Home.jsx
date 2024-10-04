@@ -25,7 +25,7 @@ const Home = () => {
   const getAllCategory = async () => {
     try {
       const { data } = await axios.get(
-        "http://localhost:3001/api/v1/category/get-category"
+        "http://localhost:3000/api/v1/category/get-category"
       );
       if (data?.success) {
         setCategories(data?.category);
@@ -45,7 +45,7 @@ const Home = () => {
     try {
       setLoading(true);
       const { data } = await axios.get(
-        `http://localhost:3001/api/v1/product/product-list/${page}`
+        `http://localhost:3000/api/v1/product/product-list/${page}`
       );
       if (data?.success) {
         setLoading(false);
@@ -70,7 +70,7 @@ const Home = () => {
   const getTotal = async () => {
     try {
       const { data } = await axios.get(
-        "http://localhost:3001/api/v1/product/product-count"
+        "http://localhost:3000/api/v1/product/product-count"
       );
       setTotal(data?.total);
     } catch (error) {
@@ -83,7 +83,7 @@ const Home = () => {
     try {
       setLoading(true);
       const { data } = await axios.get(
-        `http://localhost:3001/api/v1/product/product-list/${page}`
+        `http://localhost:3000/api/v1/product/product-list/${page}`
       );
       setLoading(false);
       setProducts([...products, ...data?.products]);
@@ -113,7 +113,7 @@ const Home = () => {
   const filteredProducts = async () => {
     try {
       const { data } = await axios.post(
-        "http://localhost:3001/api/v1/product/filter-product",
+        "http://localhost:3000/api/v1/product/filter-product",
         {
           checked,
           radio,
@@ -181,7 +181,7 @@ const Home = () => {
                   <div className="w-full h-48" key={index}>
                     <img
                       className="w-full h-full object-cover "
-                      src={`http://localhost:3001/api/v1/product/product-photo/${i._id}`}
+                      src={`http://localhost:3000/api/v1/product/product-photo/${i._id}`}
                       alt={i.name}
                     />
                   </div>

@@ -25,7 +25,7 @@ const UpdateProduct = () => {
   const getsingleProduct = async () => {
     try {
       const { data } = await axios.get(
-        `http://localhost:3001/api/v1/product/get-product/${params.slug}`
+        `http://localhost:3000/api/v1/product/get-product/${params.slug}`
       );
       setName(data?.product?.name);
       setId(data.product._id);
@@ -49,7 +49,7 @@ const UpdateProduct = () => {
   const getAllCategory = async () => {
     try {
       const { data } = await axios.get(
-        "http://localhost:3001/api/v1/category/get-category"
+        "http://localhost:3000/api/v1/category/get-category"
       );
       if (data?.success) {
         setCategories(data?.category);
@@ -78,7 +78,7 @@ const UpdateProduct = () => {
       productData.append("shipping", shipping);
 
       const { data } = await axios.put(
-        `http://localhost:3001/api/v1/product/update-product/${id}`,
+        `http://localhost:3000/api/v1/product/update-product/${id}`,
         productData
       );
 
@@ -99,7 +99,7 @@ const UpdateProduct = () => {
       let answer = window.prompt("Are you sure you want to delete?");
       if (!answer) return;
       const { data } = await axios.delete(
-        `http://localhost:3001/api/v1/product/delete-product/${id}`
+        `http://localhost:3000/api/v1/product/delete-product/${id}`
       );
       if (data?.success) {
         toast.success("Product deleted successfully");
@@ -160,7 +160,7 @@ const UpdateProduct = () => {
                   />
                 ) : (
                   <img
-                    src={`http://localhost:3001/api/v1/product/product-photo/${id}`}
+                    src={`http://localhost:3000/api/v1/product/product-photo/${id}`}
                     alt="product_photo"
                     className="img object-cover w-[60%] h-[20vh] lg:w-[50%] lg:h-[30vh] mt-10"
                   />

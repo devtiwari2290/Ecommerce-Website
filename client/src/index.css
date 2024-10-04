@@ -9,15 +9,13 @@
 .navbar{
     font-family: "Poppins", sans-serif;
     text-transform: capitalize;
-    box-shadow: 0 8px 10px -6px black;
-    -webkit-box-shadow: 0 8px 6px -6px black;
-    -moz-box-shadow: 0 8px 6px -6px black;
-    border-bottom: 0.7px solid black;
-    background-color: #000000;
-    background: -webkit-linear-gradient(to right, #434343, #000000);
-    background: linear-gradient(to right, #434343, #000000);
-}
+    box-shadow: 0 8px 10px -6px rgb(255, 255, 255);
+    -webkit-box-shadow: 0 8px 6px -6px rgba(255, 255, 255, 0.974);
+    -moz-box-shadow: 0 8px 6px -6px rgb(255, 255, 255);
+    border-bottom: 0.7px solid white;
+    background-color: #ffe4c4;
 
+}
 .footer{
     font-family: "Poppins", sans-serif;
     background-color: #000000;

@@ -6,7 +6,7 @@ const Users = () => {
   return (
     <Layout>
       <div className="w-full min-h-[90vh]  text-black  pt-20 lg:pt-24">
-        <div className="flex  align-center gap-20 ">
+        <div className="flex items-center gap-20 ">
           <div className="flex flex-col ">
             <AdminMenu />
           </div>

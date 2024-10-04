@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 
 const CartPage = () => {
   const [cart, setCart] = useCart();
-  const [auth] = useAuth(); 
+  const [auth] = useAuth();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -30,9 +30,10 @@ const CartPage = () => {
   };
 
   const loadRazorpay = () => {
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.onerror = () => alert('Failed to load Razorpay SDK. Please check your connection.');
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onerror = () =>
+      alert("Failed to load Razorpay SDK. Please check your connection.");
     document.body.appendChild(script);
   };
 
@@ -61,22 +62,22 @@ const CartPage = () => {
     try {
       // Create an order on the backend
       const { data: order } = await axios.post(
-        "http://localhost:3001/api/v1/product/razorpay/order",
+        "http://localhost:3000/api/v1/product/razorpay/order",
         { cart } // Send cart details to backend
       );
 
       // Define Razorpay options
       const options = {
-        key:"rzp_test_tNWXa4uuNEOeQc", // Razorpay Key ID from env
-        amount: order.amount, 
-        currency: order.currency, 
-        name: "Your Shop Name",
+        key: "rzp_test_tNWXa4uuNEOeQc", // Razorpay Key ID from env
+        amount: order.amount,
+        currency: order.currency,
+        name: "Ecommerce App",
         description: "Order Payment",
-        order_id: order.id, 
+        order_id: order.id,
         handler: async (response) => {
           try {
             const verificationResponse = await axios.post(
-              "http://localhost:3001/api/v1/product/razorpay/verify",
+              "http://localhost:3000/api/v1/product/razorpay/verify",
               {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
@@ -147,7 +148,7 @@ const CartPage = () => {
                   <div className="w-full h-44">
                     <img
                       className="object-cover w-full h-full"
-                      src={`http://localhost:3001/api/v1/product/product-photo/${p._id}`}
+                      src={`http://localhost:3000/api/v1/product/product-photo/${p._id}`}
                       alt={p.name}
                     />
                   </div>
